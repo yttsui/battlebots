@@ -5,10 +5,12 @@
   *@brief 
   */
 
+#include <PID.h>
+#include <chassis_motors.h>
 #include "can.h"
 #include "arm_math.h"
 #include "chassis_motors.h"
-
+#include "PID.h"
   
 uint8_t can1_rx_data[8];
 uint8_t can2_rx_data[8];
@@ -20,7 +22,9 @@ volatile Encoder CM3Encoder = {0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // CAN Address 203
 volatile Encoder CM4Encoder = {0,0,0,0,0,0,0,0,0,0,0,0,0,0}; // CAN Address 204
 
 uint32_t can_chassis_count[4] = {0, 0, 0, 0};
-
+void send_to_chassis(float wheel_speed_0, float wheel_speed_1, float wheel_speed_2, float wheel_speed_3) {
+    Chassis_Set_Speed((int16_t)(0.1*wheel_speed_0),(int16_t) (0.1*wheel_speed_1), (int16_t )0.1*wheel_speed_2, (int16_t)0.1*wheel_speed_3);
+};
 /*
  * can filter must be initialized before use
  */
@@ -65,6 +69,10 @@ void CanFilter_Init(CAN_HandleTypeDef* hcan)
 
 }
 
+void chassis_control_init(void)
+{
+    memset(M_wheel_result,0, sizeof(M_wheel_result));
+}
 /*
  * Overload the interrupt function beneath
  * it will be auto callback when can receive msg completely
@@ -147,4 +155,49 @@ void CAN_Send_Msg(CAN_HandleTypeDef* hcan, uint8_t *msg, uint32_t id)
     hcan->pTxMsg->DLC = 0x08;
 
     HAL_CAN_Transmit(hcan, 10);
+}
+
+//PID_Handler wheels_speed_pid[4];
+void update_wheel_pid()
+{
+    wheels_speed_pid[0].Current=CM1Encoder.velocity_from_ESC;
+    wheels_speed_pid[1].Current=CM2Encoder.velocity_from_ESC;
+    wheels_speed_pid[2].Current=CM3Encoder.velocity_from_ESC;
+    wheels_speed_pid[3].Current=CM4Encoder.velocity_from_ESC;
+}
+
+int16_t get_wheel_velocity(uint8_t index)
+{
+    switch(index)
+    {
+        case 0:
+            return CM1Encoder.velocity_from_ESC;
+            break;
+        case 1:
+            return CM2Encoder.velocity_from_ESC;
+            break;
+        case 2:
+            return CM3Encoder.velocity_from_ESC;
+            break;
+        case 3:
+            return CM4Encoder.velocity_from_ESC;
+            break;
+    }
+
+}
+
+
+void control_car(PID_Handler *PID_Array)
+{
+    static float ratio=1;
+    float input[4]={0,0,0,0};
+    float target_speed[4]={0,0,0,0};
+    for (int i=0;i<4;++i){
+        target_speed[i] = M_wheel_result[i];
+        target_speed[i]*= ratio;
+    }
+    for (int i=0;i<4;++i) {
+        input[i]=PID_UpdateValue(PID_Array,target_speed[i],get_wheel_velocity(i));
+    }
+    send_to_chassis(input[0],input[1],input[2],input[3]);
 }

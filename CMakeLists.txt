@@ -19,8 +19,8 @@ add_library(HAL ${HAL_SOURCES})
 add_library(CMSIS
         Mac_toolchain/startup_stm32f427xx.s)
 #add_library(MATH ${MATH_SOURCES})
-#add_library(USB ${USB_SOURCES})
-
+include_directories(Src)
+include_directories(Inc)
 include_directories(Firmware/Inc)
 include_directories(Drivers/STM32F4xx_HAL_Driver/Inc)
 include_directories(Drivers/CMSIS/Include)
@@ -30,7 +30,7 @@ include_directories(User/Inc)
 #include_directories(Middlewares/ST/STM32_USB_Device_Library/Core/Inc)
 
 add_definitions(-DSTM32F427xx)
-add_executable(${PROJECT_NAME}.elf ${USER_SOURCES} ${LINKER_SCRIPT})
+add_executable(${PROJECT_NAME}.elf ${USER_SOURCES} ${LINKER_SCRIPT} Src/PID.c)
 
 target_link_libraries(${PROJECT_NAME}.elf HAL CMSIS)
 

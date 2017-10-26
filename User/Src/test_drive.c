@@ -26,6 +26,7 @@ int16_t front_right;
 int16_t back_right;
 int16_t front_left;
 int16_t back_left;
+int16_t M_wheel_result[4];
 
 void drive_kinematics(int RX_X2, int RX_Y1, int RX_X1)
 {
@@ -41,8 +42,12 @@ void drive_kinematics(int RX_X2, int RX_Y1, int RX_X1)
     back_right = (drive + strafe + rotate) + rotate_feedback;       // CAN ID: 0x202
     front_left = (drive - strafe + rotate) + rotate_feedback;       // CAN ID: 0x203
     back_left = (-1*drive - strafe + rotate) + rotate_feedback;     // CAN ID: 0x204
+    M_wheel_result[0]=front_right;
+    M_wheel_result[1]=back_right;
+    M_wheel_result[2]=front_left;
+    M_wheel_result[3]=back_left;
     //Update using CAN bus chassis function (provided by Alex Wong)
-    Chassis_Set_Speed(0.1*front_right, 0.1*back_right, 0.1*front_left, 0.1*back_left);
+
 }
 
 float map(float x, float in_min, float in_max, float out_min, float out_max)

@@ -23,7 +23,7 @@ void RC_Init()
     HAL_UART_Init(&huart1);//Configue all needed for DUBS
     __HAL_UART_ENABLE_IT(&huart1, UART_IT_IDLE); // Enable IDLE interrupt function
     HAL_UART_Receive_DMA(&huart1, USART_RX_BUF, 18);    //receive now
-}tU
+}
 
 //Interrupt function 
 void decryptDBUS()

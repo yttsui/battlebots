@@ -43,7 +43,8 @@
 #include "spi.h" 
 #include "tim.h" 
 #include "usart.h" 
-#include "gpio.h" 
+#include "gpio.h"
+#include "chassis_motors.h"
  
 /* USER CODE BEGIN Includes */ 
 #include "chassis_motors.h"
@@ -108,7 +109,11 @@ int main(void)
     MX_TIM4_Init(); 
     MX_TIM8_Init(); 
     MX_TIM12_Init(); 
-    MX_USART2_UART_Init(); 
+    MX_USART2_UART_Init();
+
+    //PID_Handler PID;
+    PID_Handler wheels_speed_pid[4];
+    PID_Init(&wheels_speed_pid[4], 2, 0, 0,0,0,0);
  
     /* USER CODE BEGIN 2 */ 
     RC_Init(); 
@@ -119,7 +124,7 @@ int main(void)
  
  
     /* USER CODE END 2 */ 
- 
+
     /* Infinite loop */ 
     /* USER CODE BEGIN WHILE */ 
     while (1) { 
@@ -127,6 +132,7 @@ int main(void)
  
         /* USER CODE BEGIN 3 */
         drive_kinematics(RC_Ctl.rc.channel0, RC_Ctl.rc.channel1, RC_Ctl.rc.channel2);
+        control_car(&wheels_speed_pid);
         HAL_Delay(1);
     } 
     /* USER CODE END 3 */ 
@@ -246,8 +252,8 @@ void assert_failed(uint8_t* file, uint32_t line)
  
 } 
  
-#endif 
- 
+#endif
+
 /** 
   * @} 
   */ 
